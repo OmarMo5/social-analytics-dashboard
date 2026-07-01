@@ -16,6 +16,7 @@ import { loadFacebook, selectPageStats, selectFBStatus, selectFBAnalytics } from
 import { loadInstagram, selectIGAnalytics, selectIGStatus } from '../store/slices/instagramSlice';
 import { loadYouTube, selectYTAnalytics, selectYTStatus } from '../store/slices/youtubeSlice';
 import { loadMaps, selectMapsAnalytics, selectMapsStatus } from '../store/slices/mapsSlice';
+import { loadX, selectXStats, selectXAnalytics, selectXStatus } from '../store/slices/xSlice';
 
 // Existing Components
 import KPICard from '../components/dashboard/KPICard';
@@ -55,6 +56,9 @@ export default function DashboardPage() {
   const igStatus = useSelector(selectIGStatus);
   const mapsData = useSelector(selectMapsAnalytics);
   const mapsStatus = useSelector(selectMapsStatus);
+  const xStats = useSelector(selectXStats);
+  const xAnalytics = useSelector(selectXAnalytics);
+  const xStatus = useSelector(selectXStatus);
 
   useEffect(() => {
     if (tiktokStatus === 'idle') dispatch(loadTikTok());
@@ -62,7 +66,8 @@ export default function DashboardPage() {
     if (ytStatus === 'idle') dispatch(loadYouTube());
     if (igStatus === 'idle') dispatch(loadInstagram());
     if (mapsStatus === 'idle') dispatch(loadMaps());
-  }, [dispatch, tiktokStatus, fbStatus, ytStatus, igStatus, mapsStatus]);
+    if (xStatus === 'idle') dispatch(loadX());
+  }, [dispatch, tiktokStatus, fbStatus, ytStatus, igStatus, mapsStatus, xStatus]);
 
   if (status === 'loading' && !articles.length) return <Loader />;
   if (status === 'failed') return <ErrorState message={error} />;
@@ -84,8 +89,10 @@ export default function DashboardPage() {
   const ytLikes = ytData?.totalLikes || 2895;
   const mapsLikes = mapsData?.totalLikes || 2386;
 
-  // إجمالي الإعجابات المتاحة (فيسبوك، تيك توك، إنستجرام، يوتيوب، مابس)
-  const totalLikes = (tiktokStats?.totalLikes || 1054984) + fbLikes + igLikes + ytLikes + mapsLikes;
+  const xLikes = xStats?.totalLikes || 0;
+
+  // إجمالي الإعجابات المتاحة (فيسبوك، تيك توك، إنستجرام، يوتيوب، مابس، X)
+  const totalLikes = (tiktokStats?.totalLikes || 1054984) + fbLikes + igLikes + ytLikes + mapsLikes + xLikes;
 
   // إجمالي التفاعل المتاح
   const ttEngagement = (tiktokStats?.totalLikes || 1054984) + (tiktokAnalytics?.totalComments || 0) + (tiktokAnalytics?.totalShares || 0);
@@ -93,8 +100,9 @@ export default function DashboardPage() {
   const igEngagement = igData ? (igData.totalLikes + igData.totalCom + igData.totalShare) : 173;
   const ytEngagement = ytData ? (ytData.totalLikes + ytData.totalCom) : 2913;
   const mapsEngagement = mapsData ? mapsData.totalLikes : 2386;
+  const xEngagement = xAnalytics?.totalEngagement || 0;
 
-  const totalEngagement = ttEngagement + fbEngagement + igEngagement + ytEngagement + mapsEngagement;
+  const totalEngagement = ttEngagement + fbEngagement + igEngagement + ytEngagement + mapsEngagement + xEngagement;
 
   // إجمالي المتابعين المعروف (فيسبوك، إنستجرام، تيك توك)
   const igStaticFollowers = 45000; // Instagram followers (baseline)
@@ -187,7 +195,7 @@ export default function DashboardPage() {
       </div>
 
       {/* الصف الجديد الأول: 5 كروت دائرية */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 mb-5 w-full">
+      <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-5 w-full">
         <CircularKPICard
           percentage={positiveSentimentPct}
           label="تفاعل الناس"
@@ -220,8 +228,8 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* الصف الجديد الثاني: 4 كروت إجمالي */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-5 w-full">
+      {/* الصف الجديد الثاني: 5 كروت إجمالي */}
+      <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4 mb-5 w-full">
         <SummaryMetricCard
           label="إجمالي التفاعل المتاح"
           value={formatLargeNum(totalEngagement, '+')}
@@ -245,6 +253,13 @@ export default function DashboardPage() {
           label="إجمالي المتابعين المعروف"
           value={formatLargeNum(totalFollowers, '+')}
           footer="فيسبوك + إنستجرام + تيك توك"
+        />
+        <SummaryMetricCard
+          label="تفاعل منصة X"
+          value={xAnalytics ? formatLargeNum(xAnalytics.totalEngagement) : '--'}
+          footer={xAnalytics ? `${xAnalytics.total} تغريدة محلَّلة` : 'جاري التحميل...'}
+          badge={xAnalytics ? 'نشط' : undefined}
+          badgeColor={xAnalytics ? 'var(--pos)' : undefined}
         />
       </div>
 
@@ -297,14 +312,14 @@ export default function DashboardPage() {
           <PrimaryAuditSummary />
         </div>
         <div className="lg:col-span-8">
-          <AudiencePlatformSize tiktokStats={tiktokStats} facebookStats={fbStats} />
+          <AudiencePlatformSize tiktokStats={tiktokStats} facebookStats={fbStats} xStats={xStats} xAnalytics={xAnalytics} />
         </div>
       </div>
 
 
 
       {/* الصف الثاني: 3 كروت */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-5 w-full">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-5 w-full">
         <TrendingCard articles={articles} />
         <TopPlatformCard platforms={platforms} />
         <SentimentDonut data={sentiment} />

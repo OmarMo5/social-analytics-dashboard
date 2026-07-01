@@ -240,7 +240,7 @@ export default function MapsPage() {
       {status === 'succeeded' && analytics && (
         <>
           {/* KPI Row */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(190px, 1fr))', gap:16, marginBottom:28 }}>
+          <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5" style={{ gap:16, marginBottom:28 }}>
             <IGKPICard icon={MessageSquare} label="إجمالي التقييمات"  value={analytics.total}                    iconColor="#4285f4" delay={0}    large />
             <StarKPI avg={analytics.avgStars} />
             <IGKPICard icon={ThumbsUp}      label="إجمالي الإعجابات"  value={analytics.totalLikes.toLocaleString()} iconColor="#fbbf24" delay={0.1}  />

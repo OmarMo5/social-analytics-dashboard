@@ -86,9 +86,8 @@ export default function YouTubeStatusCard({ youtubeData, status }) {
 
       {/* Internal Subcards Grid */}
       <div
+        className="grid grid-cols-1 sm:grid-cols-3"
         style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
           gap: '16px',
         }}
       >

@@ -11,6 +11,7 @@ import MapsPage from './pages/MapsPage';
 import FacebookPage from './pages/FacebookPage';
 import { useAutoRefresh } from './hooks/useAutoRefresh';
 import TikTokPage from './pages/TikTokPage';
+import XPage from './pages/XPage';
 
 function AppRoutes() {
   useAutoRefresh();
@@ -24,6 +25,7 @@ function AppRoutes() {
         <Route path="/maps" element={<MapsPage />} />
         <Route path="/facebook" element={<FacebookPage />} />
         <Route path="/tiktok" element={<TikTokPage />} />
+        <Route path="/x" element={<XPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

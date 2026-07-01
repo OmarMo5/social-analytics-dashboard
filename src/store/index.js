@@ -5,6 +5,7 @@ import youtubeReducer   from './slices/youtubeSlice';
 import mapsReducer      from './slices/mapsSlice';
 import facebookReducer  from './slices/facebookSlice';
 import tiktokReducer from './slices/tiktokSlice';
+import xReducer from './slices/xSlice';
 
 const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ const store = configureStore({
     maps:      mapsReducer,
     facebook:  facebookReducer,
     tiktok: tiktokReducer,
+    x: xReducer,
   },
 });
 

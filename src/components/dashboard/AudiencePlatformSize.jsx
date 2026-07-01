@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function AudiencePlatformSize({ tiktokStats, facebookStats }) {
+export default function AudiencePlatformSize({ tiktokStats, facebookStats, xStats, xAnalytics }) {
   // Extract values from dynamic states
   const tiktokFollowers = tiktokStats?.followerCount || 29029;
   const tiktokLikes = tiktokStats?.totalLikes || 1054984;
@@ -10,6 +10,9 @@ export default function AudiencePlatformSize({ tiktokStats, facebookStats }) {
   const fbLikes = facebookStats?.totalLikes || 43794;
 
   const igFollowers = 45000; // Instagram follower count (static baseline)
+
+  const xEngagement = xAnalytics?.totalEngagement || 0;
+  const xTweets = xStats?.totalTweets || 0;
 
   // Format helper
   const fmt = (n) => {
@@ -91,11 +94,24 @@ export default function AudiencePlatformSize({ tiktokStats, facebookStats }) {
             </span>
           </div>
 
+          {/* X (لا يوجد عدد متابعين في الشيت، بيتعرض تفاعل بدل الجمهور) */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ width: '45px', fontSize: '12px', fontWeight: '700', color: 'var(--text-3)', textAlign: 'left' }}>
+              —
+            </span>
+            <div style={{ flex: '1', height: '8px', background: 'var(--border)', borderRadius: '4px', overflow: 'hidden' }}>
+              <div style={{ width: '0%', height: '100%', background: '#1d9bf0', borderRadius: '4px' }} />
+            </div>
+            <span style={{ width: '70px', fontSize: '12px', fontWeight: '700', color: 'var(--text-1)', textAlign: 'right' }}>
+              X
+            </span>
+          </div>
+
         </div>
       </div>
 
       {/* Grid of Highlight Panels */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
+      <div className="grid grid-cols-2 lg:grid-cols-4" style={{ gap: '10px' }}>
         
         {/* Panel 1: Strongest Platform (أقوى جمهور) */}
         <div style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', borderRadius: '10px', padding: '10px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '85px' }}>
@@ -138,6 +154,20 @@ export default function AudiencePlatformSize({ tiktokStats, facebookStats }) {
           </span>
           <span style={{ fontSize: '9px', color: 'var(--text-3)', textAlign: 'center', fontWeight: '600' }}>
             صفحة رسمية، {fmt(fbLikes)} إعجاب
+          </span>
+        </div>
+
+        {/* Panel 4: X (إجمالي التفاعل) */}
+        <div style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', borderRadius: '10px', padding: '10px 12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', minHeight: '85px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+            <span style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-2)' }}>إجمالي التفاعل</span>
+            <span style={{ fontSize: '9px', fontWeight: '700', padding: '1px 6px', borderRadius: '4px', background: 'rgba(29, 155, 240, 0.1)', color: '#1d9bf0', border: '1px solid rgba(29, 155, 240, 0.2)' }}>X</span>
+          </div>
+          <span style={{ fontSize: '18px', fontWeight: '900', color: 'var(--text-1)', textAlign: 'center', margin: '4px 0' }}>
+            {fmt(xEngagement)}
+          </span>
+          <span style={{ fontSize: '9px', color: 'var(--text-3)', textAlign: 'center', fontWeight: '600' }}>
+            {xTweets} تغريدة، تفاعل مرصود
           </span>
         </div>
 

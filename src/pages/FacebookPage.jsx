@@ -207,7 +207,7 @@ export default function FacebookPage() {
           {analytics && (
             <>
               {/* KPI Cards */}
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(190px, 1fr))', gap:16, marginBottom:28 }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" style={{ gap:16, marginBottom:28 }}>
                 <IGKPICard icon={Facebook}       label="إجمالي المنشورات"    value={analytics.total}              iconColor={FB_BLUE} delay={0}    large />
                 <IGKPICard icon={Heart}          label="إجمالي التفاعلات"    value={fmt(analytics.totalReact)}    iconColor="#e1306c" delay={0.05} />
                 <IGKPICard icon={Share2}         label="إجمالي المشاركات"    value={fmt(analytics.totalShares)}   iconColor="#34d399" delay={0.1}  />
@@ -227,7 +227,7 @@ export default function FacebookPage() {
               {analytics.topPosts?.length > 0 && (
                 <div style={{ marginBottom:28 }}>
                   <h2 style={{ fontSize:16, fontWeight:800, color:'var(--text-1)', marginBottom:16 }}>🏆 أعلى المنشورات تفاعلاً</h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4">
                     {analytics.topPosts.map((p,i) => <FBPostCard key={p.id||i} post={p} rank={i+1} />)}
                   </div>
                 </div>

@@ -355,7 +355,7 @@ export default function TikTokPage() {
           {analytics && (
             <>
               {/* KPI Cards */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: 16, marginBottom: 28 }}>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" style={{ gap: 16, marginBottom: 28 }}>
                 <TikTokKPICard 
                   icon={Video} 
                   label="إجمالي الفيديوهات" 
@@ -414,7 +414,7 @@ export default function TikTokPage() {
                   <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--text-1)', marginBottom: 16 }}>
                     🏆 أعلى الفيديوهات تفاعلاً
                   </h2>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4">
                     {analytics.topPosts.map((p, i) => (
                       <TikTokVideoCard key={p.id || i} video={p} rank={i + 1} />
                     ))}

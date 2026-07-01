@@ -165,7 +165,7 @@ export default function YouTubePage() {
       {status === 'succeeded' && analytics && (
         <>
           {/* KPI Cards */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:16, marginBottom:28 }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" style={{ gap:16, marginBottom:28 }}>
             <IGKPICard icon={Youtube}        label="إجمالي الفيديوهات"  value={analytics.total}           iconColor="#f87171" delay={0}    large />
             <IGKPICard icon={Eye}            label="إجمالي المشاهدات"   value={fmt(analytics.totalViews)} iconColor="#f87171" delay={0.05} />
             <IGKPICard icon={ThumbsUp}       label="إجمالي الإعجابات"   value={fmt(analytics.totalLikes)} iconColor="#fbbf24" delay={0.1}  />
@@ -185,7 +185,7 @@ export default function YouTubePage() {
           {analytics.topVideos?.length > 0 && (
             <div style={{ marginBottom:32 }}>
               <h2 style={{ fontSize:16, fontWeight:800, color:'var(--text-1)', marginBottom:16 }}>🏆 أكثر الفيديوهات مشاهدةً</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4">
                 {analytics.topVideos.map((v, i) => (
                   <VideoCard key={v.id || i} video={v} rank={i + 1} />
                 ))}

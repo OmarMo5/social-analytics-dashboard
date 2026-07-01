@@ -225,7 +225,7 @@ export default function InstagramPage() {
       {status === 'succeeded' && analytics && (
         <>
           {/* KPI Grid */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:12, marginBottom:28 }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" style={{ gap:12, marginBottom:28 }}>
             <IGKPICard icon={Instagram}     label="إجمالي المنشورات"  value={analytics.total}           iconColor="#e1306c" delay={0}    large />
             <IGKPICard icon={Eye}           label="إجمالي الوصول"     value={fmt(analytics.totalReach)} iconColor="#e1306c" delay={0.05} />
             <IGKPICard icon={Heart}         label="إجمالي الإعجابات"  value={fmt(analytics.totalLikes)} iconColor="#f59e0b" delay={0.1}  />
@@ -248,7 +248,7 @@ export default function InstagramPage() {
               <h2 style={{ fontSize:16, fontWeight:800, color:'var(--text-1)', marginBottom:16 }}>
                 🏆 أفضل المنشورات وصولاً
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 xl:grid-cols-5 gap-4">
                 {analytics.topPosts.map((post, i) => (
                   <PostCard key={post.id || i} post={post} rank={i + 1} />
                 ))}
