@@ -21,7 +21,7 @@ const links = [
   { to: '/maps',       icon: Map,             label: 'تقييمات Google Maps' },
   { to: '/facebook',   icon: Facebook,        label: 'تحليلات فيسبوك' },
   { to: '/tiktok',     icon: Music,           label: 'تحليلات تيكتوك' }, // <--- Music بدل Facebook
-  /* { to: '/x',          icon: XLogoIcon,       label: 'تحليلات منصة X' }, */
+  { to: '/x',          icon: XLogoIcon,       label: 'تحليلات منصة X' },
 ];
 
 export default function Sidebar({ collapsed, setCollapsed, mobileOpen, setMobileOpen, isMobile }) {
