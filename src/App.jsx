@@ -2,7 +2,10 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import store from './store';
 import { ThemeProvider } from './context/ThemeContext';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import Layout from './components/layout/Layout';
+import LoginPage from './pages/LoginPage';
 import DashboardPage from './pages/DashboardPage';
 import NewsPage from './pages/NewsPage';
 import InstagramPage from './pages/InstagramPage';
@@ -17,7 +20,8 @@ function AppRoutes() {
   useAutoRefresh();
   return (
     <Routes>
-      <Route element={<Layout />}>
+      <Route path="/login" element={<LoginPage />} />
+      <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/news" element={<NewsPage />} />
         <Route path="/instagram" element={<InstagramPage />} />
@@ -35,11 +39,13 @@ function AppRoutes() {
 export default function App() {
   return (
     <ThemeProvider>
-      <Provider store={store}>
-        <BrowserRouter basename="/social-analytic">
-          <AppRoutes />
-        </BrowserRouter>
-      </Provider>
+      <AuthProvider>
+        <Provider store={store}>
+          <BrowserRouter basename="/social-analytic">
+            <AppRoutes />
+          </BrowserRouter>
+        </Provider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Search, RefreshCw, Sun, Moon, Menu } from 'lucide-react';
+import { Search, RefreshCw, Sun, Moon, Menu, LogOut } from 'lucide-react';
 import { setFilter, loadArticles, selectStatus } from '../../store/slices/newsSlice';
 import { useTheme } from '../../context/ThemeContext';
+import { useAuth } from '../../context/AuthContext';
 
 const DAYS_AR = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
 
@@ -34,7 +35,9 @@ export default function Header({ collapsed, setCollapsed, mobileOpen, setMobileO
   const dispatch = useDispatch();
   const status = useSelector(selectStatus);
   const { theme, toggle } = useTheme();
+  const { user, logout } = useAuth();
   const loading = status === 'loading';
+  const firstName = user?.name?.split(' ')[0] || '';
 
   const toggleSidebar = () => {
     // على الموبايل نفتح الـ Overlay
@@ -122,6 +125,60 @@ export default function Header({ collapsed, setCollapsed, mobileOpen, setMobileO
             </>
           )}
         </button>
+
+        {/* User greeting + logout */}
+        {user && (
+          <div
+            className="flex items-center gap-1.5 sm:gap-2 pr-1.5 sm:pr-2.5 mr-0.5 sm:mr-1"
+            style={{ borderRight: '1px solid var(--border)' }}
+          >
+            <div
+              className="flex items-center gap-2 sm:gap-2.5 rounded-xl"
+              style={{
+                padding: '4px 12px 4px 4px',
+                background: 'color-mix(in srgb, var(--gold) 9%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--gold) 22%, transparent)',
+              }}
+            >
+              <div style={{ position: 'relative', flexShrink: 0 }} title={user.email}>
+                <div
+                  style={{
+                    width: 34, height: 34, borderRadius: '50%',
+                    background: 'linear-gradient(135deg, var(--gold-dk), var(--gold))',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 4px 14px rgba(251,191,36,.35)',
+                  }}
+                >
+                  <span style={{ fontSize: 14, fontWeight: 900, color: '#fff' }}>
+                    {firstName.charAt(0).toUpperCase()}
+                  </span>
+                </div>
+                <span
+                  style={{
+                    position: 'absolute', bottom: -1, left: -1,
+                    width: 10, height: 10, borderRadius: '50%',
+                    background: 'var(--pos)', border: '2px solid var(--bg-surface)',
+                  }}
+                />
+              </div>
+              <div className="hidden min-[480px]:flex flex-col leading-tight">
+                <span className="text-[12.5px] sm:text-[13px] font-extrabold" style={{ color: 'var(--text-1)' }}>
+                  مرحبًا، {firstName}
+                </span>
+                <span className="hidden sm:inline text-[10px]" style={{ color: 'var(--text-3)', fontWeight: 500 }}>
+                  {user.email}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={logout}
+              title="تسجيل الخروج"
+              className="flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg border border-[var(--border)] bg-transparent text-[var(--text-2)] cursor-pointer transition-colors duration-200 hover:bg-[var(--hover-bg)] flex-shrink-0"
+            >
+              <LogOut size={15} />
+            </button>
+          </div>
+        )}
       </div>
     </header>
   );
