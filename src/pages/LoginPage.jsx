@@ -1,30 +1,33 @@
 import { useState, useRef, useEffect } from 'react';
-import { useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { Mail, Lock, Unlock, Eye, EyeOff, LogIn, ShieldCheck, BarChart3, Radio } from 'lucide-react';
+import { Navigate } from 'react-router-dom';
+import { Mail, Lock, Unlock, LogIn, ShieldCheck, BarChart3, Radio, ShieldAlert, Ban, ArrowRight } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import CONFIG from '../config/config';
 
+const POLL_INTERVAL_MS = 6000;
+
 export default function LoginPage() {
-  const { isAuthenticated, login } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const { isAuthenticated, requestAccess, pollStatus } = useAuth();
 
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [shake, setShake] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
   const [unlocking, setUnlocking] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [phase, setPhase] = useState('form'); // form | pending | rejected | blocked
   const emailRef = useRef(null);
+  const pollRef = useRef(null);
+  const emailSentRef = useRef('');
 
   useEffect(() => {
     if (unlocked) emailRef.current?.focus();
   }, [unlocked]);
 
+  useEffect(() => () => stopPolling(), []);
+
   if (isAuthenticated) {
-    const from = location.state?.from?.pathname || '/';
-    return <Navigate to={from} replace />;
+    return <Navigate to="/" replace />;
   }
 
   const triggerShake = () => {
@@ -41,29 +44,72 @@ export default function LoginPage() {
     }, 550);
   };
 
-  const handleSubmit = (e) => {
+  function stopPolling() {
+    if (pollRef.current) {
+      clearInterval(pollRef.current);
+      pollRef.current = null;
+    }
+  }
+
+  function applyResult(result) {
+    if (result.status === 'pending') {
+      setPhase('pending');
+      startPolling();
+    } else if (result.status === 'rejected') {
+      stopPolling();
+      setPhase('rejected');
+    } else if (result.status === 'blocked') {
+      stopPolling();
+      setPhase('blocked');
+    }
+    // 'approved' needs no local handling — AuthContext stores the token/user,
+    // isAuthenticated flips to true, and the check above redirects automatically.
+  }
+
+  function startPolling() {
+    if (pollRef.current) return;
+    pollRef.current = setInterval(async () => {
+      try {
+        const result = await pollStatus(emailSentRef.current);
+        if (result.status !== 'pending') {
+          stopPolling();
+          applyResult(result);
+        }
+      } catch {
+        // transient network hiccup — keep polling
+      }
+    }, POLL_INTERVAL_MS);
+  }
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newErrors = {};
-    if (!email.trim()) newErrors.email = 'أدخل البريد الإلكتروني';
-    if (!password) newErrors.password = 'أدخل كلمة المرور';
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      triggerShake();
-      return;
-    }
-
-    const result = login(email, password);
-    if (!result.success) {
-      setErrors({ [result.field]: result.message });
+    const trimmed = email.trim();
+    if (!trimmed) {
+      setErrors({ email: 'أدخل البريد الإلكتروني' });
       triggerShake();
       return;
     }
 
     setErrors({});
-    const from = location.state?.from?.pathname || '/';
-    navigate(from, { replace: true });
+    setSubmitting(true);
+    emailSentRef.current = trimmed;
+
+    try {
+      const result = await requestAccess(trimmed);
+      applyResult(result);
+    } catch (err) {
+      setErrors({ email: 'تعذر الاتصال بالخادم، حاول مرة أخرى' });
+      triggerShake();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const backToForm = () => {
+    stopPolling();
+    setPhase('form');
+    setErrors({});
   };
 
   return (
@@ -212,6 +258,68 @@ export default function LoginPage() {
                 </p>
               </div>
             </button>
+          ) : phase === 'pending' ? (
+            <div className="fade-up" style={{ textAlign: 'center' }}>
+              <div style={{
+                width: 64, height: 64, borderRadius: '50%', margin: '0 auto 20px', position: 'relative',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '3px solid var(--border)' }} />
+                <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: '3px solid transparent', borderTopColor: 'var(--gold)', animation: 'loginSpin 1s linear infinite' }} />
+                <Mail size={22} style={{ color: 'var(--gold)' }} />
+              </div>
+              <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-1)', margin: 0 }}>
+                بانتظار موافقة الإدارة
+              </p>
+              <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 8, lineHeight: 1.7 }}>
+                تم إرسال طلبك بنجاح، جارٍ التحقق من حالة الموافقة تلقائيًا...
+              </p>
+              <p dir="ltr" style={{ fontSize: 11.5, color: 'var(--text-2)', marginTop: 10, fontWeight: 700, textAlign: 'center' }}>
+                {emailSentRef.current}
+              </p>
+              <button
+                type="button"
+                onClick={backToForm}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 22,
+                  fontSize: 11.5, fontWeight: 700, color: 'var(--text-3)',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                }}
+              >
+                <ArrowRight size={13} />
+                استخدام بريد إلكتروني آخر
+              </button>
+            </div>
+          ) : phase === 'rejected' || phase === 'blocked' ? (
+            <div className="fade-up" style={{ textAlign: 'center' }}>
+              <div style={{
+                width: 64, height: 64, borderRadius: '50%', margin: '0 auto 20px',
+                background: 'var(--neg-bg)', border: '1px solid var(--neg-border)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                {phase === 'blocked' ? <Ban size={26} style={{ color: 'var(--neg)' }} /> : <ShieldAlert size={26} style={{ color: 'var(--neg)' }} />}
+              </div>
+              <p style={{ fontSize: 15, fontWeight: 800, color: 'var(--text-1)', margin: 0 }}>
+                {phase === 'blocked' ? 'تم حظر حسابك' : 'تم رفض طلبك'}
+              </p>
+              <p style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 8, lineHeight: 1.7 }}>
+                {phase === 'blocked'
+                  ? 'تم حظر هذا الحساب من الوصول إلى لوحة التحكم.'
+                  : 'برجاء التواصل مع الإدارة لمزيد من المعلومات.'}
+              </p>
+              <button
+                type="button"
+                onClick={backToForm}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 5, marginTop: 22,
+                  fontSize: 11.5, fontWeight: 700, color: 'var(--text-3)',
+                  background: 'none', border: 'none', cursor: 'pointer',
+                }}
+              >
+                <ArrowRight size={13} />
+                استخدام بريد إلكتروني آخر
+              </button>
+            </div>
           ) : (
             <form onSubmit={handleSubmit} noValidate className="fade-up">
               <div style={{ marginBottom: 24 }}>
@@ -224,11 +332,11 @@ export default function LoginPage() {
                   <LogIn size={19} style={{ color: '#fff' }} />
                 </div>
                 <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--text-1)', margin: 0 }}>تسجيل الدخول</h2>
-                <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 4 }}>أدخل بياناتك للوصول إلى لوحة التحكم</p>
+                <p style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 4 }}>أدخل بريدك الإلكتروني للوصول إلى لوحة التحكم</p>
               </div>
 
               {/* Email */}
-              <div style={{ marginBottom: 16 }}>
+              <div style={{ marginBottom: 6 }}>
                 <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6, display: 'block' }}>
                   البريد الإلكتروني
                 </label>
@@ -239,7 +347,7 @@ export default function LoginPage() {
                     type="text"
                     dir="ltr"
                     value={email}
-                    onChange={(e) => { setEmail(e.target.value); if (errors.email) setErrors(er => ({ ...er, email: undefined })); }}
+                    onChange={(e) => { setEmail(e.target.value); if (errors.email) setErrors({}); }}
                     placeholder="name@email.com"
                     style={{
                       width: '100%',
@@ -258,50 +366,9 @@ export default function LoginPage() {
                 )}
               </div>
 
-              {/* Password */}
-              <div style={{ marginBottom: 6 }}>
-                <label style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-2)', marginBottom: 6, display: 'block' }}>
-                  كلمة المرور
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <Lock size={15} style={{ position: 'absolute', top: '50%', right: 12, transform: 'translateY(-50%)', color: errors.password ? 'var(--neg)' : 'var(--text-3)' }} />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    dir="ltr"
-                    value={password}
-                    onChange={(e) => { setPassword(e.target.value); if (errors.password) setErrors(er => ({ ...er, password: undefined })); }}
-                    placeholder="••••••••"
-                    style={{
-                      width: '100%',
-                      padding: '10px 38px 10px 38px',
-                      borderRadius: 10,
-                      fontSize: 12.5,
-                      border: `1px solid ${errors.password ? 'var(--neg)' : 'var(--border-md)'}`,
-                      background: 'var(--bg-input)',
-                      color: 'var(--text-1)',
-                      textAlign: 'right',
-                    }}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(s => !s)}
-                    style={{
-                      position: 'absolute', top: '50%', left: 10, transform: 'translateY(-50%)',
-                      background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-3)',
-                      display: 'flex', alignItems: 'center', padding: 4,
-                    }}
-                    tabIndex={-1}
-                  >
-                    {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
-                  </button>
-                </div>
-                {errors.password && (
-                  <p style={{ fontSize: 10.5, color: 'var(--neg)', marginTop: 5, fontWeight: 600 }}>⚠ {errors.password}</p>
-                )}
-              </div>
-
               <button
                 type="submit"
+                disabled={submitting}
                 style={{
                   width: '100%',
                   display: 'flex',
@@ -316,11 +383,12 @@ export default function LoginPage() {
                   background: 'linear-gradient(135deg, var(--gold-dk), var(--gold))',
                   color: '#1a1200',
                   fontWeight: 800,
-                  cursor: 'pointer',
+                  cursor: submitting ? 'not-allowed' : 'pointer',
+                  opacity: submitting ? 0.7 : 1,
                 }}
               >
                 <LogIn size={14} />
-                <span>دخول</span>
+                <span>{submitting ? 'جارِ الإرسال...' : 'متابعة'}</span>
               </button>
 
               <p style={{ fontSize: 10, color: 'var(--text-3)', textAlign: 'center', marginTop: 16 }}>
@@ -342,6 +410,9 @@ export default function LoginPage() {
           0%   { transform: scale(.85); opacity: .55; }
           70%  { transform: scale(1.4); opacity: 0; }
           100% { opacity: 0; }
+        }
+        @keyframes loginSpin {
+          to { transform: rotate(360deg); }
         }
         .lock-pulse-ring {
           position: absolute;

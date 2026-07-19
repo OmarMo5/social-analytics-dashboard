@@ -37,7 +37,8 @@ export default function Header({ collapsed, setCollapsed, mobileOpen, setMobileO
   const { theme, toggle } = useTheme();
   const { user, logout } = useAuth();
   const loading = status === 'loading';
-  const firstName = user?.name?.split(' ')[0] || '';
+  const localPart = user?.email?.split('@')[0] || '';
+  const firstName = localPart ? localPart.charAt(0).toUpperCase() + localPart.slice(1) : '';
 
   const toggleSidebar = () => {
     // على الموبايل نفتح الـ Overlay
