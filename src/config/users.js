@@ -13,6 +13,7 @@ const USERS = [
   { name: 'social-analytic', email: 'social@asc.sa.com', password: '123456789' },
   { name: 'Sarah Hussein', email: 'Sarahseu22@gmail.com', password: 'Sarah1000#' },
   { name: 'Mostafa Kotb', email: 'mostafakotb359@gmail.com', password: '123456' },
+  { name: 'Nagady El Ahmady', email: 'nagady@gmail.com', password: 'nagady@12345' },
 ];
 
 export default USERS;
